@@ -216,6 +216,9 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             ),
         ),
     )
+    track_inventory = graphene.Boolean(
+        required=True, description="Whether Saleor should keep track Variant stock."
+    )
 
     class Meta:
         default_resolver = ChannelContextType.resolver_with_context
@@ -493,6 +496,43 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     is_available_for_purchase = graphene.Boolean(
         description="Whether the product is available for purchase."
     )
+    description = graphene.JSONString(
+        required=True,
+        description=(
+            "Product description in JSON String format. ",
+            "Dashboard and default storefront use EditorJS for rich text formatting.",
+        ),
+    )
+    seo_description = graphene.String(
+        description="Product description used for internet search results."
+    )
+    seo_title = graphene.String(
+        description="Product title used for internet search results."
+    )
+    default_variant = graphene.Field(
+        ProductVariant,
+        description=(
+            (
+                "Default variant can be used as first displayed in Product Details ",
+                "page or on Product lists.",
+            )
+        ),
+    )
+    rating = graphene.Float(
+        description=(
+            "Product rating can for example set by external integrations "
+            "and used for sorting Products on lists."
+        )
+    )
+    category = graphene.Field(
+        lambda: Category,
+        description=(
+            (
+                "Product category. Categories have tree hierarchy, which means "
+                "that product is also a member of the category parent.",
+            )
+        ),
+    )
 
     class Meta:
         default_resolver = ChannelContextType.resolver_with_context
@@ -502,17 +542,12 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         only_fields = [
             "category",
             "charge_taxes",
-            "description",
             "id",
             "name",
             "slug",
             "product_type",
-            "seo_description",
-            "seo_title",
             "updated_at",
             "weight",
-            "default_variant",
-            "rating",
         ]
 
     @staticmethod
@@ -906,16 +941,26 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         graphene.NonNull(CollectionChannelListing),
         description="List of channels in which the collection is available.",
     )
+    description = graphene.JSONString(
+        required=True,
+        description=(
+            "Collection description in JSON String format. ",
+            "Dashboard and default storefront use EditorJS for rich text formatting.",
+        ),
+    )
+    seo_description = graphene.String(
+        description="Collection description used for internet search results."
+    )
+    seo_title = graphene.String(
+        description="Collection title used for internet search results."
+    )
 
     class Meta:
         default_resolver = ChannelContextType.resolver_with_context
-        description = "Represents a collection of products."
+        description = "Represents a collection of products. Collections have flat structure and can't be nested."
         only_fields = [
-            "description",
             "id",
             "name",
-            "seo_description",
-            "seo_title",
             "slug",
         ]
         interfaces = [relay.Node, ObjectWithMetadata]
@@ -986,6 +1031,23 @@ class Category(CountableDjangoObjectType):
         Image, size=graphene.Int(description="Size of the image.")
     )
     translation = TranslationField(CategoryTranslation, type_name="category")
+    description = graphene.JSONString(
+        required=True,
+        description=(
+            "Category description in JSON String format. ",
+            "Dashboard and default storefront use EditorJS for rich text formatting.",
+        ),
+    )
+    seo_description = graphene.String(
+        description="Category description used for internet search results."
+    )
+    seo_title = graphene.String(
+        description="Category title used for internet search results."
+    )
+    level = graphene.Int(
+        required=True,
+        description="How deeply nested is this Category. Categories without parents have level 0.",
+    )
 
     class Meta:
         description = (
@@ -994,13 +1056,9 @@ class Category(CountableDjangoObjectType):
             "storefront."
         )
         only_fields = [
-            "description",
             "id",
-            "level",
             "name",
             "parent",
-            "seo_description",
-            "seo_title",
             "slug",
         ]
         interfaces = [relay.Node, ObjectWithMetadata]
@@ -1066,10 +1124,17 @@ class ProductImage(CountableDjangoObjectType):
         description="The URL of the image.",
         size=graphene.Int(description="Size of the image."),
     )
+    alt = graphene.String(
+        required=True,
+        description=(
+            "The alt attribute provides information for an image if a user ",
+            "cant' view it.",
+        ),
+    )
 
     class Meta:
         description = "Represents a product image."
-        only_fields = ["alt", "id", "sort_order"]
+        only_fields = ["id", "sort_order"]
         interfaces = [relay.Node]
         model = models.ProductImage
 
