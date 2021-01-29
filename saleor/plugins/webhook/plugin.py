@@ -134,7 +134,7 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         checkout_data = generate_checkout_payload(checkout)
         trigger_webhooks_for_event.delay(
-            WebhookEventType.CHECKOUT_UPADTED, checkout_data
+            WebhookEventType.CHECKOUT_UPDATED, checkout_data
         )
 
     def page_created(self, page: "Page", previous_value: Any) -> Any:
