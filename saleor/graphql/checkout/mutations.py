@@ -1,4 +1,4 @@
-from typing import Iterable, List, Optional, Tuple
+from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple
 
 import graphene
 from django.conf import settings
@@ -41,6 +41,10 @@ from ..order.types import Order
 from ..product.types import ProductVariant
 from ..shipping.types import ShippingMethod
 from .types import Checkout, CheckoutLine
+
+if TYPE_CHECKING:
+    from ...account.models import User
+
 
 ERROR_DOES_NOT_SHIP = "This checkout doesn't need shipping"
 
