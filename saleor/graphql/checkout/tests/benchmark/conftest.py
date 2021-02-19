@@ -4,6 +4,7 @@ from .....checkout import calculations
 from .....checkout.utils import (
     add_variant_to_checkout,
     add_voucher_to_checkout,
+    fetch_checkout_info,
     fetch_checkout_lines,
 )
 from .....payment import ChargeStatus, TransactionKind
@@ -71,7 +72,8 @@ def checkout_with_voucher(checkout_with_billing_address, voucher):
     checkout = checkout_with_billing_address
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
-    add_voucher_to_checkout(manager, checkout, lines, voucher)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
+    add_voucher_to_checkout(manager, checkout_info, lines, voucher)
     return checkout
 
 
