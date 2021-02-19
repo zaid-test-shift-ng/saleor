@@ -24,6 +24,7 @@ from ..utils import (
     change_billing_address_in_checkout,
     change_shipping_address_in_checkout,
     clear_shipping_method,
+    fetch_checkout_info,
     fetch_checkout_lines,
     get_voucher_discount_for_checkout,
     get_voucher_for_checkout,
@@ -618,8 +619,9 @@ def test_recalculate_checkout_discount(
 
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout_with_voucher)
+    checkout_info = fetch_checkout_info(checkout_with_voucher, lines, [])
 
-    recalculate_checkout_discount(manager, checkout_with_voucher, lines, None)
+    recalculate_checkout_discount(manager, checkout_info, lines, None)
     assert (
         checkout_with_voucher.translated_discount_name == voucher_translation_fr.name
     )  # noqa
@@ -632,7 +634,9 @@ def test_recalculate_checkout_discount_with_sale(
     checkout = checkout_with_voucher_percentage
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
-    recalculate_checkout_discount(manager, checkout, lines, [discount_info])
+    checkout_info = fetch_checkout_info(checkout, lines, [])
+
+    recalculate_checkout_discount(manager, checkout_info, lines, [discount_info])
     assert checkout.discount == Money("1.50", "USD")
     assert (
         calculations.checkout_total(
@@ -654,7 +658,8 @@ def test_recalculate_checkout_discount_voucher_not_applicable(
 
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
-    recalculate_checkout_discount(manager, checkout, lines, None)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
+    recalculate_checkout_discount(manager, checkout_info, lines, None)
 
     assert not checkout.voucher_code
     assert not checkout.discount_name
@@ -669,7 +674,8 @@ def test_recalculate_checkout_discount_expired_voucher(checkout_with_voucher, vo
 
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
-    recalculate_checkout_discount(manager, checkout, lines, None)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
+    recalculate_checkout_discount(manager, checkout_info, lines, None)
 
     assert not checkout.voucher_code
     assert not checkout.discount_name
@@ -697,7 +703,8 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_less_than_shipping
     )
     channel_listing.save()
 
-    recalculate_checkout_discount(manager, checkout, lines, None)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
+    recalculate_checkout_discount(manager, checkout_info, lines, None)
 
     assert checkout.discount == channel_listing.price
     assert checkout.discount_name == "Free shipping"
@@ -737,7 +744,8 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_bigger_than_shippi
     )
     channel_listing.save()
 
-    recalculate_checkout_discount(manager, checkout, lines, None)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
+    recalculate_checkout_discount(manager, checkout_info, lines, None)
 
     assert checkout.discount == channel_listing.price
     assert checkout.discount_name == "Free shipping"
@@ -762,7 +770,8 @@ def test_recalculate_checkout_discount_free_shipping_for_checkout_without_shippi
     checkout = checkout_with_voucher_percentage
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
-    recalculate_checkout_discount(manager, checkout, lines, None)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
+    recalculate_checkout_discount(manager, checkout_info, lines, None)
 
     assert not checkout.discount_name
     assert not checkout.voucher_code

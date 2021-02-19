@@ -383,7 +383,7 @@ def get_voucher_for_checkout(
 
 def recalculate_checkout_discount(
     manager: PluginsManager,
-    checkout: Checkout,
+    checkout_info: CheckoutInfo,
     lines: Iterable["CheckoutLineInfo"],
     discounts: Iterable[DiscountInfo],
 ):
@@ -392,9 +392,10 @@ def recalculate_checkout_discount(
     Will clear both voucher and discount if the discount is no longer
     applicable.
     """
+    checkout = checkout_info.checkout
     voucher = get_voucher_for_checkout(checkout)
     if voucher is not None:
-        address = checkout.shipping_address or checkout.billing_address
+        address = checkout_info.shipping_address or checkout_info.billing_address
         try:
             discount = get_voucher_discount_for_checkout(
                 manager, voucher, checkout, lines, address, discounts
@@ -732,6 +733,17 @@ def fetch_checkout_info(
         shipping_method=shipping_method,
         shipping_method_channel_listings=shipping_channel_listings,
         valid_shipping_methods=valid_shipping_method,
+    )
+
+
+def update_checkout_info_shipping_method(
+    checkout_info: CheckoutInfo, shipping_method: Optional[ShippingMethod]
+):
+    checkout_info.shipping_method = shipping_method
+    checkout_info.shipping_method_channel_listings = (
+        ShippingMethodChannelListing.objects.filter(
+            shipping_method=shipping_method, channel=checkout_info.channel
+        ).first()
     )
 
 
